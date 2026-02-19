@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn --version:*)",
+      "Bash(where:*)",
+      "Bash(mvn test:*)"
+    ]
+  }
+}
