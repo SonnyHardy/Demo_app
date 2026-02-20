@@ -8,7 +8,9 @@ import com.sonny.exception.EmailAlreadyExistsException;
 import com.sonny.user.User;
 import com.sonny.user.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
@@ -25,6 +27,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
     private final TokenBlacklist tokenBlacklist;
@@ -44,12 +47,10 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
-        if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw new BadCredentialsException("Invalid credentials");
-        }
-        return new AuthResponse(generateToken(user.getEmail()));
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.email(), request.password())
+        );
+        return new AuthResponse(generateToken(authentication.getName()));
     }
 
     public void logout(String bearerToken) {
