@@ -57,7 +57,7 @@ public class AuthService {
         String token = bearerToken.replace("Bearer ", "");
         try {
             Jwt jwt = jwtDecoder.decode(token);
-            tokenBlacklist.revoke(jwt.getId());
+            tokenBlacklist.revokeToken(jwt.getId(), jwt.getExpiresAt());
         } catch (JwtException ignored) {
             // Token already invalid — nothing to revoke
         }

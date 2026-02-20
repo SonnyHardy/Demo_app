@@ -2,8 +2,8 @@ package com.sonny.auth;
 
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.Set;
+import java.time.Instant;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -13,13 +13,18 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class TokenBlacklist {
 
-    private final Set<String> revokedJtis = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Map<String, Instant> blacklist = new ConcurrentHashMap<>();
 
-    public void revoke(String jti) {
-        revokedJtis.add(jti);
+    public void revokeToken(String tokenId, Instant expiration) {
+        blacklist.put(tokenId, expiration);
     }
 
-    public boolean isRevoked(String jti) {
-        return revokedJtis.contains(jti);
+    public boolean isRevoked(String tokenId) {
+        return blacklist.containsKey(tokenId);
+    }
+
+    // todo: schedule periodic cleanup of expired tokens to prevent memory bloat
+    public void cleanupExpiredTokens() {
+        blacklist.entrySet().removeIf(entry -> Instant.now().isAfter(entry.getValue()));
     }
 }
