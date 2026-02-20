@@ -43,7 +43,9 @@ public class TodoService {
         Todo todo = todoRepository.findById(id)
                 .orElseThrow(() -> new TodoNotFoundException(id));
         todo.setTitle(request.title());
-        todo.setDescription(request.description());
+        if (request.description() != null && !request.description().isBlank()) {
+            todo.setDescription(request.description());
+        }
         todo.setCompleted(request.completed());
         return toResponse(todoRepository.save(todo));
     }

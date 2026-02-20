@@ -17,3 +17,14 @@ spring:
 
 server:
   port: 8082
+
+logging:
+  level:
+    org.springframework.security.oauth2: ERROR
+    org.springframework.security.authentication: ERROR
+    org.springframework.security.web: ERROR
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:change-me-in-production-must-be-at-least-32-chars-long!!}
+    expiration-ms: 900000  # 15 min

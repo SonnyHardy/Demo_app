@@ -337,7 +337,7 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: validate  # Never 'create' in production!
+      ddl-auto: validate  # Never 'create' or 'update' in production!
     show-sql: false
 
 app:
