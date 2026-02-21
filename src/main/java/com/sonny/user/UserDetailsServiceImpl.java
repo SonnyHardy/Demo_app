@@ -1,5 +1,6 @@
 package com.sonny.user;
 
+import com.sonny.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,6 +18,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @NonNull
     public UserDetails loadUserByUsername(@NonNull String email) throws UsernameNotFoundException {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+                .orElseThrow(() -> new UserNotFoundException(email));
     }
 }

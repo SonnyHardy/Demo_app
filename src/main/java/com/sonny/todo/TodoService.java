@@ -4,6 +4,7 @@ import com.sonny.exception.TodoNotFoundException;
 import com.sonny.todo.dto.TodoRequest;
 import com.sonny.todo.dto.TodoResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +40,7 @@ public class TodoService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public TodoResponse update(Long id, TodoRequest request) {
         Todo todo = todoRepository.findById(id)
                 .orElseThrow(() -> new TodoNotFoundException(id));
@@ -51,6 +53,7 @@ public class TodoService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public void delete(Long id) {
         if (!todoRepository.existsById(id)) {
             throw new TodoNotFoundException(id);
