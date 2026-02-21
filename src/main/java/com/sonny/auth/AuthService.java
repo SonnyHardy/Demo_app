@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
@@ -18,7 +19,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,14 +47,14 @@ public class AuthService {
                 .passwordHash(passwordEncoder.encode(request.password()))
                 .build();
         userRepository.save(user);
-        return new AuthResponse(generateToken(user.getEmail()));
+        return new AuthResponse(generateToken(user.getEmail(), user.getAuthorities()));
     }
 
     public AuthResponse login(LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(), request.password())
         );
-        return new AuthResponse(generateToken(authentication.getName()));
+        return new AuthResponse(generateToken(authentication.getName(), authentication.getAuthorities()));
     }
 
     public void logout(String bearerToken) {
@@ -63,11 +67,17 @@ public class AuthService {
         }
     }
 
-    private String generateToken(String email) {
+    private String generateToken(String email, Collection<? extends GrantedAuthority> authorities) {
         Instant now = Instant.now();
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
+
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(email)
+                .claim("authorities", authorities.stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .filter(Objects::nonNull)
+                        .filter(authority -> !authority.equals("FACTOR_PASSWORD"))
+                        .collect(Collectors.toSet()))
                 .issuedAt(now)
                 .expiresAt(now.plusMillis(jwtProperties.expirationMs()))
                 .id(UUID.randomUUID().toString())

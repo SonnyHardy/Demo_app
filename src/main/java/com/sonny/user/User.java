@@ -2,6 +2,7 @@ package com.sonny.user;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -9,7 +10,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -18,6 +20,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Slf4j
 public class User implements UserDetails {
 
     @Id
@@ -30,6 +33,13 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String passwordHash;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role")
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private Set<Role> roles = new HashSet<>(Set.of(Role.USER));
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -41,7 +51,10 @@ public class User implements UserDetails {
     @Override
     @NonNull
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        log.error("User {} has roles: {}", email, roles);
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.name()))
+                .toList();
     }
 
     @Override

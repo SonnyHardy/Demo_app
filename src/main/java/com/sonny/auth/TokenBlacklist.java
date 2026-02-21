@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * In-memory store of revoked JWT IDs (jti claims).
  * Sufficient for a single-node demo; use Redis or a DB table in production.
+ * todo: use Redis or a DB table in production
  */
 @Component
 public class TokenBlacklist {

@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -17,7 +17,7 @@ import java.util.List;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    record ErrorResponse(String code, String message) {}
+    public record ErrorResponse(String code, String message) {}
 
     @ExceptionHandler(TodoNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(TodoNotFoundException ex) {
@@ -31,6 +31,13 @@ public class GlobalExceptionHandler {
         log.warn("Registration conflict: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(new ErrorResponse("EMAIL_ALREADY_EXISTS", ex.getMessage()));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException ex) {
+        log.warn("User not found: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("USER_NOT_FOUND", ex.getMessage()));
     }
 
     @ExceptionHandler(BadCredentialsException.class)
@@ -58,6 +65,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationServiceException.class)
     public void handleAuthenticationServiceException(AuthenticationServiceException ex) {
         log.error("Authentication service error: {}", ex.getMessage(), ex);
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ErrorResponse>  handleAuthorizationDeniedException(AuthorizationDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("FORBIDDEN", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
