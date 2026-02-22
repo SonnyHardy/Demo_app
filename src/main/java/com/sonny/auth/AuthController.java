@@ -2,6 +2,7 @@ package com.sonny.auth;
 
 import com.sonny.auth.dto.AuthResponse;
 import com.sonny.auth.dto.LoginRequest;
+import com.sonny.auth.dto.RefreshRequest;
 import com.sonny.auth.dto.RegisterRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,5 +31,10 @@ public class AuthController {
     public ResponseEntity<Void> logout(@RequestHeader("Authorization") String authHeader) {
         authService.logout(authHeader);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshRequest request) {
+        return ResponseEntity.ok(authService.refresh(request.refreshToken()));
     }
 }
